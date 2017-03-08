@@ -17,7 +17,7 @@ using std::string;
 using namespace std;
 using namespace cv;
 
-#define FROMECAMERA   
+//#define FROMECAMERA   
 #define PSR_Threshold 10
 
 int main(int argc, char* argv[]){
@@ -55,9 +55,6 @@ int main(int argc, char* argv[]){
 	saveVideo.open("C:\\Users\\Aiwei\\Desktop\\100.avi", CV_FOURCC('M', 'J', 'P', 'G'), 50,
 		cv::Size(frame.cols, frame.rows));
 #endif
-
-	//tracker.init(firstBox, frame);
-	//controller.init(firstBox, frame.cols, frame.rows);
 
 	float peak_value, PSR;
 	cv::HOGDescriptor peopleDetect;
@@ -97,7 +94,7 @@ int main(int argc, char* argv[]){
 		tracker.init(firstBox, frame);
 		controller.init(firstBox, frame.cols, frame.rows);
 		cv::Rect displayRect = firstBox;
-		//cout << "SSSS" << endl;
+
 		while (1){
 			video >> frame;
 			if (frame.data == NULL)
@@ -146,9 +143,12 @@ int main(int argc, char* argv[]){
 
 			//  if(fameNum%10 == 5)       
 			displayRect = result;
-
+			char text[30];
+			sprintf_s(text, "p = %d,R = %d", P, R);
 			frame.copyTo(displayImage);
 			cv::rectangle(displayImage, displayRect, CV_RGB(0, 255, 0), 3);
+			cv::putText(displayImage, text, cv::Point(30, 30), cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 0, 255));
+
 			cv::imshow(windowName, displayImage);
 			if (cv::waitKey(1) == 27)
 				return 0;
