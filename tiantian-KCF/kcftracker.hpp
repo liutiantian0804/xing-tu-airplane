@@ -111,11 +111,14 @@ public:
     int template_size; // template size
     float scale_step; // scale step for multi-scale estimation
     float scale_weight;  // to downweight detection scores of other scales for added stability
-
+	cv::Mat _tmpl;
+	cv::Mat getFeatures(const cv::Mat & image, bool inithann, float scale_adjust = 1.0f);
+	cv::Mat getFeatures2(const cv::Mat & image, bool inithann, float scale_adjust, cv::Rect box);
+	cv::Point2f detect(cv::Mat z, cv::Mat x, float &peak_value, float &PSR);
 protected:
     // Detect object in the current frame.
     cv::Point2f detect(cv::Mat z, cv::Mat x, float &peak_value);
-	cv::Point2f detect(cv::Mat z, cv::Mat x, float &peak_value, float &PSR);
+	//cv::Point2f detect(cv::Mat z, cv::Mat x, float &peak_value, float &PSR);
 	float calPSR(cv::Mat res, float peak_value, cv::Point2f p);
 	float peak_value;
     // train tracker with a single image
@@ -128,7 +131,7 @@ protected:
     cv::Mat createGaussianPeak(int sizey, int sizex);
 
     // Obtain sub-window from image, with replication-padding and extract features
-    cv::Mat getFeatures(const cv::Mat & image, bool inithann, float scale_adjust = 1.0f);
+    //cv::Mat getFeatures(const cv::Mat & image, bool inithann, float scale_adjust = 1.0f);
 
     // Initialize Hanning window. Function called only in the first frame.
     void createHanningMats();
@@ -138,7 +141,7 @@ protected:
 
     cv::Mat _alphaf;
     cv::Mat _prob;
-    cv::Mat _tmpl;
+ //   cv::Mat _tmpl;
     cv::Mat _num;
     cv::Mat _den;
     cv::Mat _labCentroids;

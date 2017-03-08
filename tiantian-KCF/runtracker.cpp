@@ -17,7 +17,7 @@ using std::string;
 using namespace std;
 using namespace cv;
 
-//#define FROMECAMERA   
+#define FROMECAMERA   
 #define PSR_Threshold 10
 
 int main(int argc, char* argv[]){
@@ -44,7 +44,7 @@ int main(int argc, char* argv[]){
 	cv::Mat frame;
 	cv::Mat displayImage;
 	// Tracker results
-	cv::Rect result;
+	cv::Rect result, displayRect;
 	cv::Rect firstBox;
 	bool getInitbox = false;///add variable
 
@@ -79,21 +79,79 @@ int main(int argc, char* argv[]){
 	}
 #endif // !FROMECAMERA
 
+
+
+	while (!getInitbox )///add function
+	{
+		video >> frame;
+		//	cv::resize(frame, frame, cv::Size(640, 360));
+		getInitbox = getFirstBoxFromDetection(frame, firstBox, windowName);
+	}
+	KCFTracker *tracker = new KCFTracker(HOG, FIXEDWINDOW, MULTISCALE, LAB);
+	flyControl *controller = new flyControl;
+	//KCFTracker tracker(HOG, FIXEDWINDOW, MULTISCALE, LAB);
+	//flyControl controller;
+	tracker->init(firstBox, frame);
+	controller->init(firstBox, frame.cols, frame.rows);
+	displayRect = firstBox;
+
+
 	bool end = false;
 
 	while (!end)
 	{
-		while (!getInitbox)///add function
+		//跟丢之后的处理机制
+		while (!getInitbox)
 		{
+			std::cout << std::endl;
 			video >> frame;
-			//	cv::resize(frame, frame, cv::Size(640, 360));
-			getInitbox = getFirstBoxFromDetection(frame, firstBox, windowName);
+			imshow(windowName, frame);
+			waitKey(1);
+			people.clear();			// 一直加检测
+			peopleFiltered.clear();
+			peopleDetect.detectMultiScale(frame, people, 0, cv::Size(8, 8), cv::Size(32, 32), 1.05, 2);
+			for (int i = 0; i < people.size(); i++)
+			{
+				cv::Rect r = people[i];
+				int j = 0;
+				for (j = 0; j < people.size(); j++)
+					if (j != i && (r & people[j]) == r)
+						break;
+				if (j == people.size())
+					peopleFiltered.push_back(r);
+			}
+			std::cout << "people.size()"<<people.size() << std::endl;
+			if (!peopleFiltered.empty()) std::cout << "peopleFiltered.size() "<<peopleFiltered.size() << std::endl;
+			for (cv::Rect r : peopleFiltered)
+			{
+				r.x += cvRound(r.width*0.1);
+				r.width = cvRound(r.width*0.8);
+				r.y += cvRound(r.height*0.07);
+				r.height = cvRound(r.height*0.8);
+				std::cout << "people: " << r << std::endl;
+
+			}
+			for (cv::Rect r : peopleFiltered)
+			{
+				//cv::Point2f res = detect(_tmpl, getFeatures(image, 0, 1.0f), peak_value, PSR_temp);
+				cv::rectangle(frame, r, CV_RGB(255, 255, 0), 3);
+				imshow(windowName, frame);
+				tracker->detect(tracker->_tmpl, tracker->getFeatures2(frame, 0, 1.0f,r), peak_value, PSR);
+				cout << "psr = " << PSR << endl;
+				waitKey(1);
+				if (PSR > 20)
+				{
+					getInitbox = 1;
+					delete tracker;
+					KCFTracker *tracker = new KCFTracker(HOG, FIXEDWINDOW, MULTISCALE, LAB);
+					flyControl *controller = new flyControl;
+					tracker->init(r, frame);
+					controller->init(r, frame.cols, frame.rows);
+					displayRect = r;
+					break;
+				}
+			}
 		}
-		KCFTracker tracker(HOG, FIXEDWINDOW, MULTISCALE, LAB);
-		flyControl controller;
-		tracker.init(firstBox, frame);
-		controller.init(firstBox, frame.cols, frame.rows);
-		cv::Rect displayRect = firstBox;
 
 		while (1){
 			video >> frame;
@@ -105,7 +163,7 @@ int main(int argc, char* argv[]){
 			fameNum++;
 			//  cv::resize(frame,frame,cv::Size(640,360));
 			//result = tracker.update(frame, peak_vaule); 
-			result = tracker.update(frame, peak_value, PSR);
+			result = tracker->update(frame, peak_value, PSR);
 			cout << "PSR = " << PSR << endl;
 			if (PSR < PSR_Threshold)
 			{
@@ -114,32 +172,10 @@ int main(int argc, char* argv[]){
 				break;
 			}
 
-			controller.update(result);
-			P = controller.getPitch();
-			R = controller.getRoll();
-
-			// 一直加检测
-			//        people.clear();
-			//        peopleFiltered.clear();
-			//        peopleDetect.detectMultiScale(frame,people,0,cv::Size(8,8),cv::Size(32,32),1.05,2);
-			//        for( int i = 0; i < people.size(); i++ )
-			//        {
-			//            cv::Rect r = people[i];
-			//            int j = 0;
-			//            for(  j = 0; j < people.size(); j++ )
-			//                if( j != i && (r & people[j]) == r)
-			//                    break;
-			//            if( j == people.size() )
-			//                peopleFiltered.push_back(r);
-			//        }
-			//        for(cv::Rect r : peopleFiltered){
-			//            r.x += cvRound(r.width*0.1);
-			//            r.width = cvRound(r.width*0.8);
-			//            r.y += cvRound(r.height*0.07);
-			//            r.height = cvRound(r.height*0.8);
-			//            std::cout<<"people: "<<r<<std::endl;
-			//
-			//        }
+			controller->update(result);
+			P = controller->getPitch();
+			R = controller->getRoll();
+			
 
 			//  if(fameNum%10 == 5)       
 			displayRect = result;

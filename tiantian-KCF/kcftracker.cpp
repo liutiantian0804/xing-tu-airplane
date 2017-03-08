@@ -282,6 +282,7 @@ cv::Point2f KCFTracker::detect(cv::Mat z, cv::Mat x, float &peak_value, float &P
 	return p;
 }
 
+
 float KCFTracker::calPSR(cv::Mat res, float peak_value, cv::Point2f p)
 {
 	std::vector<float> vec;
@@ -545,6 +546,145 @@ cv::Mat KCFTracker::getFeatures(const cv::Mat & image, bool inithann, float scal
     return FeaturesMap;
 }
     
+cv::Mat KCFTracker::getFeatures2(const cv::Mat & image, bool inithann, float scale_adjust,cv::Rect box)
+{
+	cv::Rect extracted_roi;
+	//cv::resize(box, box, cv::Size(_roi.width, _roi.height));
+	float cx = box.x + box.width / 2; 
+	float cy = box.y + box.height / 2;
+
+	if (inithann) {
+		int padded_w = box.width * padding;
+		int padded_h = box.height * padding;
+
+		if (template_size > 1) {  // Fit largest dimension to the given template size
+			if (padded_w >= padded_h)  //fit to width
+				_scale = padded_w / (float)template_size;
+			else
+				_scale = padded_h / (float)template_size;
+
+			_tmpl_sz.width = padded_w / _scale;
+			_tmpl_sz.height = padded_h / _scale;
+		}
+		else {  //No template size given, use ROI size
+			_tmpl_sz.width = padded_w;
+			_tmpl_sz.height = padded_h;
+			_scale = 1;
+			// original code from paper:
+			/*if (sqrt(padded_w * padded_h) >= 100) {   //Normal size
+			_tmpl_sz.width = padded_w;
+			_tmpl_sz.height = padded_h;
+			_scale = 1;
+			}
+			else {   //ROI is too big, track at half size
+			_tmpl_sz.width = padded_w / 2;
+			_tmpl_sz.height = padded_h / 2;
+			_scale = 2;
+			}*/
+		}
+
+		if (_hogfeatures) {
+			// Round to cell size and also make it even
+			_tmpl_sz.width = (((int)(_tmpl_sz.width / (2 * cell_size))) * 2 * cell_size) + cell_size * 2;
+			_tmpl_sz.height = (((int)(_tmpl_sz.height / (2 * cell_size))) * 2 * cell_size) + cell_size * 2;
+		}
+		else {  //Make number of pixels even (helps with some logic involving half-dimensions)
+			_tmpl_sz.width = (_tmpl_sz.width / 2) * 2;
+			_tmpl_sz.height = (_tmpl_sz.height / 2) * 2;
+		}
+	}
+
+	extracted_roi.width = scale_adjust * _scale * _tmpl_sz.width;
+	extracted_roi.height = scale_adjust * _scale * _tmpl_sz.height;
+
+	// center roi with new size
+	extracted_roi.x = cx - extracted_roi.width / 2;  /////
+	extracted_roi.y = cy - extracted_roi.height / 2;  ////
+
+	cv::Mat FeaturesMap;
+	cv::Mat z = RectTools::subwindow(image, extracted_roi, cv::BORDER_REPLICATE);
+
+	if (z.cols != _tmpl_sz.width || z.rows != _tmpl_sz.height) {
+		cv::resize(z, z, _tmpl_sz);
+	}
+	//cv::imshow("z",z);
+	// HOG features
+	if (_hogfeatures) {
+		IplImage z_ipl = z;
+		CvLSVMFeatureMapCaskade *map;
+		getFeatureMaps(&z_ipl, cell_size, &map);
+		normalizeAndTruncate(map, 0.2f);
+		PCAFeatureMaps(map);
+		size_patch[0] = map->sizeY;
+		size_patch[1] = map->sizeX;
+		size_patch[2] = map->numFeatures;
+
+		FeaturesMap = cv::Mat(cv::Size(map->numFeatures, map->sizeX*map->sizeY), CV_32F, map->map);  // Procedure do deal with cv::Mat multichannel bug
+		FeaturesMap = FeaturesMap.t();
+		freeFeatureMapObject(&map);
+
+		// Lab features
+		if (_labfeatures) {
+			cv::Mat imgLab;
+			cvtColor(z, imgLab, CV_BGR2Lab);
+			unsigned char *input = (unsigned char*)(imgLab.data);
+
+			// Sparse output vector
+			cv::Mat outputLab = cv::Mat(_labCentroids.rows, size_patch[0] * size_patch[1], CV_32F, float(0));
+
+			int cntCell = 0;
+			// Iterate through each cell
+			for (int cY = cell_size; cY < z.rows - cell_size; cY += cell_size){
+				for (int cX = cell_size; cX < z.cols - cell_size; cX += cell_size){
+					// Iterate through each pixel of cell (cX,cY)
+					for (int y = cY; y < cY + cell_size; ++y){
+						for (int x = cX; x < cX + cell_size; ++x){
+							// Lab components for each pixel
+							float l = (float)input[(z.cols * y + x) * 3];
+							float a = (float)input[(z.cols * y + x) * 3 + 1];
+							float b = (float)input[(z.cols * y + x) * 3 + 2];
+
+							// Iterate trough each centroid
+							float minDist = FLT_MAX;
+							int minIdx = 0;
+							float *inputCentroid = (float*)(_labCentroids.data);
+							for (int k = 0; k < _labCentroids.rows; ++k){
+								float dist = ((l - inputCentroid[3 * k]) * (l - inputCentroid[3 * k]))
+									+ ((a - inputCentroid[3 * k + 1]) * (a - inputCentroid[3 * k + 1]))
+									+ ((b - inputCentroid[3 * k + 2]) * (b - inputCentroid[3 * k + 2]));
+								if (dist < minDist){
+									minDist = dist;
+									minIdx = k;
+								}
+							}
+							// Store result at output
+							outputLab.at<float>(minIdx, cntCell) += 1.0 / cell_sizeQ;
+							//((float*) outputLab.data)[minIdx * (size_patch[0]*size_patch[1]) + cntCell] += 1.0 / cell_sizeQ; 
+						}
+					}
+					cntCell++;
+				}
+			}
+			// Update size_patch[2] and add features to FeaturesMap
+			size_patch[2] += _labCentroids.rows;
+			FeaturesMap.push_back(outputLab);
+		}
+	}
+	else {
+		FeaturesMap = RectTools::getGrayImage(z);
+		FeaturesMap -= (float) 0.5; // In Paper;
+		size_patch[0] = z.rows;
+		size_patch[1] = z.cols;
+		size_patch[2] = 1;
+	}
+
+	if (inithann) {
+		createHanningMats();
+	}
+	FeaturesMap = hann.mul(FeaturesMap);
+	return FeaturesMap;
+}
+
 // Initialize Hanning window. Function called only in the first frame.
 void KCFTracker::createHanningMats()
 {   
