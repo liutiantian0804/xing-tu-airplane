@@ -112,17 +112,21 @@ public:
     float scale_step; // scale step for multi-scale estimation
     float scale_weight;  // to downweight detection scores of other scales for added stability
 	cv::Mat _tmpl;
+	cv::Rect_<float> _roi;
 	cv::Mat getFeatures(const cv::Mat & image, bool inithann, float scale_adjust = 1.0f);
 	cv::Mat getFeatures2(const cv::Mat & image, bool inithann, float scale_adjust, cv::Rect box);
 	cv::Point2f detect(cv::Mat z, cv::Mat x, float &peak_value, float &PSR);
+	// train tracker with a single image
+	void train(cv::Mat x, float train_interp_factor);
+
+
 protected:
     // Detect object in the current frame.
     cv::Point2f detect(cv::Mat z, cv::Mat x, float &peak_value);
 	//cv::Point2f detect(cv::Mat z, cv::Mat x, float &peak_value, float &PSR);
 	float calPSR(cv::Mat res, float peak_value, cv::Point2f p);
 	float peak_value;
-    // train tracker with a single image
-    void train(cv::Mat x, float train_interp_factor);
+    
 
     // Evaluates a Gaussian kernel with bandwidth SIGMA for all relative shifts between input images X and Y, which must both be MxN. They must    also be periodic (ie., pre-processed with a cosine window).
     cv::Mat gaussianCorrelation(cv::Mat x1, cv::Mat x2);
@@ -154,5 +158,5 @@ private:
     int _gaussian_size;
     bool _hogfeatures;
     bool _labfeatures;
-    cv::Rect_<float> _roi;
+    
 };

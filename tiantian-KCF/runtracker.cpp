@@ -25,6 +25,7 @@ int main(int argc, char* argv[]){
 	int B = 0;
 	int P = 1500;
 	int R = 1500;
+	int S = 1500;//旋转
 
 	bool HOG = true;
 	bool FIXEDWINDOW = false;
@@ -94,70 +95,12 @@ int main(int argc, char* argv[]){
 	}
 	KCFTracker *tracker = new KCFTracker(HOG, FIXEDWINDOW, MULTISCALE, LAB);
 	flyControl *controller = new flyControl;
-	//KCFTracker tracker(HOG, FIXEDWINDOW, MULTISCALE, LAB);
-	//flyControl controller;
 	tracker->init(firstBox, frame);
 	controller->init(firstBox, frame.cols, frame.rows);
 	displayRect = firstBox;
 
-
-	bool end = false;
-
-	while (!end)
-	{
-		//跟丢之后的处理机制
-		while (!getInitbox)
-		{
-			std::cout << std::endl;
-			video >> frame;
-			imshow(windowName, frame);
-			waitKey(1);
-			people.clear();			// 一直加检测
-			peopleFiltered.clear();
-			peopleDetect.detectMultiScale(frame, people, 0, cv::Size(8, 8), cv::Size(32, 32), 1.05, 2);
-			for (int i = 0; i < people.size(); i++)
-			{
-				cv::Rect r = people[i];
-				int j = 0;
-				for (j = 0; j < people.size(); j++)
-					if (j != i && (r & people[j]) == r)
-						break;
-				if (j == people.size())
-					peopleFiltered.push_back(r);
-			}
-			std::cout << "people.size()" << people.size() << std::endl;
-			if (!peopleFiltered.empty()) std::cout << "peopleFiltered.size() " << peopleFiltered.size() << std::endl;
-			for (cv::Rect r : peopleFiltered)
-			{
-				r.x += cvRound(r.width*0.1);
-				r.width = cvRound(r.width*0.8);
-				r.y += cvRound(r.height*0.07);
-				r.height = cvRound(r.height*0.8);
-				std::cout << "people: " << r << std::endl;
-
-			}
-			for (cv::Rect r : peopleFiltered)
-			{
-				//cv::Point2f res = detect(_tmpl, getFeatures(image, 0, 1.0f), peak_value, PSR_temp);
-				cv::rectangle(frame, r, CV_RGB(255, 255, 0), 3);
-				imshow(windowName, frame);
-				tracker->detect(tracker->_tmpl, tracker->getFeatures2(frame, 0, 1.0f, r), peak_value, PSR);
-				cout << "psr = " << PSR << endl;
-				waitKey(1);
-				if (PSR > 20)
-				{
-					getInitbox = 1;
-					delete tracker;
-					KCFTracker *tracker = new KCFTracker(HOG, FIXEDWINDOW, MULTISCALE, LAB);
-					flyControl *controller = new flyControl;
-					tracker->init(r, frame);
-					controller->init(r, frame.cols, frame.rows);
-					displayRect = r;
-					break;
-				}
-			}
-		}
-
+	cv::Rect newResult;
+	float newPSR;
 		while (video.read(frame)){
 			/*video >> frame;
 			if (frame.data == NULL)
@@ -168,15 +111,56 @@ int main(int argc, char* argv[]){
 			fameNum++;
 			//  cv::resize(frame,frame,cv::Size(640,360));
 			//result = tracker.update(frame, peak_vaule); 
-			result = tracker->update(frame, peak_value, PSR);
+			newResult = tracker->update(frame, peak_value, PSR);
 			cout << "PSR = " << PSR << endl;
-			if (PSR < PSR_Threshold)
+			if (PSR < 10)
 			{
-				B = 1;
-				getInitbox = false;
-				break;
-			}
+				//waitKey(0);
+				P = 1500;
+				R = 1500;//悬停 旋转
+				S = 1500;
+				bool out = false;
+				while (video.read(frame) && !out)
+				{
+					frame.copyTo(displayImage);
+					cv::imshow(windowName, displayImage);
+					waitKey(1);
+					for (int i = displayImage.rows / 4; i < displayImage.rows / 4 * 3; i += result.height)
+					{
+						for (int j = displayImage.cols / 4; j < displayImage.cols / 4 * 3; j += result.width)
+						{
+							cv::Rect box = cv::Rect(j, i, result.width, result.height);
+						//	cv::rectangle(displayImage, box, CV_RGB(0, 255, 0));
+						//	cv::imshow("haha", displayImage);
+						//	waitKey(1);
+							tracker->detect(tracker->_tmpl, tracker->getFeatures2(displayImage, 0, 1.0f, box), peak_value, newPSR);
+						//	cout << "newPSR = " << newPSR << endl;
+							if (newPSR > 30)
+							{
+								PSR = newPSR;
+								//waitKey(0);
+								result = box;
+								tracker->_roi = box;
+								cv::Mat x = tracker->getFeatures(frame, 0);
+								tracker->train(x, tracker->interp_factor);
 
+							/*	delete tracker;
+								KCFTracker *tracker = new KCFTracker(HOG, FIXEDWINDOW, MULTISCALE, LAB);
+								tracker->init(box, frame);*/
+								//displayRect = box;
+								i = displayImage.rows;
+								j = displayImage.cols;
+								out = true;
+							}
+						}
+					}
+				}			
+			}
+			else
+			{
+				result = newResult;
+				//PSR = newPSR ;
+			}
 			controller->update(result);
 			P = controller->getPitch();
 			R = controller->getRoll();
@@ -243,7 +227,6 @@ int main(int argc, char* argv[]){
 				}
 			}
 		}
-	}
 
 
 
