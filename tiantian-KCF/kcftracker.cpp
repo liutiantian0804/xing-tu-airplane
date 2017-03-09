@@ -548,6 +548,11 @@ cv::Mat KCFTracker::getFeatures(const cv::Mat & image, bool inithann, float scal
     
 cv::Mat KCFTracker::getFeatures2(const cv::Mat & image, bool inithann, float scale_adjust,cv::Rect box)
 {
+	if (box.x + box.width <= 0) box.x = -box.width + 1;
+	if (box.y + box.height <= 0) box.y = -box.height + 1;
+	if (box.x >= image.cols - 1) box.x = image.cols - 2;
+	if (box.y >= image.rows - 1) box.y = image.rows - 2;
+
 	cv::Rect extracted_roi;
 	//cv::resize(box, box, cv::Size(_roi.width, _roi.height));
 	float cx = box.x + box.width / 2; 

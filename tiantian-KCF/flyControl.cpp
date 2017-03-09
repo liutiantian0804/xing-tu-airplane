@@ -65,9 +65,9 @@ void flyControl::init(Rect box, int frameWidth, int frameHeight)
 void flyControl::pitchUpdateWithArea(Rect result)
 {
 	float boxArea = result.area();
-	//cout << "boxArea / initObjectArea = " << boxArea / initObjectArea << endl;
+	cout << "boxArea / initObjectArea = " << boxArea / initObjectArea << endl;
 
-	for (int i = 0; i < 7;)
+	/*for (int i = 0; i < 7;)
 	{
 		if (boxArea > initObjectArea*areaThreshold[i])
 		{
@@ -78,15 +78,26 @@ void flyControl::pitchUpdateWithArea(Rect result)
 			pitch = pitchThreshold[i];
 			break;
 		}
+	}*/
+	if ((boxArea / initObjectArea) < 0.4)
+	{
+		pitch = 0;
 	}
+	if ((boxArea / initObjectArea) < 1)
+	{
+		pitch = (50 * (initObjectArea / boxArea-1));
+	}
+	else
+	{
+		pitch = -(50 * (boxArea / initObjectArea-1));
+	}
+	return;
 }
 
 void flyControl::pitchUpdateWithYShift(Rect result)
 {
 	float yshift = (result.y + result.height / 2) - imageCenter.y;
-	//cout << "yshift/ imageHeight = " << yshift / imageHeight << endl;
-
-	for (int i = 0; i < 7;)
+	/*for (int i = 0; i < 7;)
 	{
 		if (yshift > imageHeight*yShiftThreshold[i])
 		{
@@ -97,7 +108,19 @@ void flyControl::pitchUpdateWithYShift(Rect result)
 			pitch = pitchThreshold[i];
 			break;
 		}
+	}*/
+
+	cout << "abs(yshift / imageHeight) = " << (yshift / imageHeight) << endl;
+	if (abs(yshift / imageHeight) < 0.1)
+	{
+		pitch = 0;
 	}
+	else
+	{
+		pitch = 100 * (yshift / imageHeight);
+	}
+	return;
+
 }
 
 void flyControl::rollUpdate(Rect result)
@@ -105,7 +128,7 @@ void flyControl::rollUpdate(Rect result)
 	float xshift = (result.x + result.width / 2) - imageCenter.x;
 	//cout << "xshift/ imageWidth = " << xshift / imageWidth << endl;
 
-	for (int i = 0; i < 7;)
+	/*for (int i = 0; i < 7;)
 	{
 		if (xshift > imageWidth*xShiftThreshold[i])
 		{
@@ -116,7 +139,17 @@ void flyControl::rollUpdate(Rect result)
 			roll = rollThreshold[i];
 			break;
 		}
+	}*/
+	cout << "abs(xshift / imageWidth) = " << (xshift / imageWidth) << endl;
+	if (abs(xshift / imageWidth) < 0.1)
+	{
+		roll = 0;
 	}
+	else
+	{
+		roll = 100 * (xshift / imageWidth);
+	}
+	return;
 }
 
 void flyControl::update(cv::Rect result)
@@ -124,7 +157,7 @@ void flyControl::update(cv::Rect result)
 	if (!getInitObject) //得到初始框，在图像的正中间
 	{
 		cv::Point resultCenter(result.x + result.width / 2, result.y + result.height / 2);
-		if (abs(resultCenter.x - imageCenter.x) < 20 && abs(resultCenter.y - imageCenter.y) < 20) //20 can be changed
+		if (abs(resultCenter.x - imageCenter.x) < 50 && abs(resultCenter.y - imageCenter.y) < 50) //20 can be changed
 		{
 			initObjectArea = result.area();
 			getInitObject = true;
@@ -144,12 +177,12 @@ void flyControl::update(cv::Rect result)
 	rollUpdate(result);//调节左右
 }
 
-unsigned int flyControl::getPitch()
+int flyControl::getPitch()
 {
 	return pitch;
 }
 
-unsigned int flyControl::getRoll()
+int flyControl::getRoll()
 {
 	return roll;
 }

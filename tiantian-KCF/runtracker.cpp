@@ -17,7 +17,7 @@ using std::string;
 using namespace std;
 using namespace cv;
 
-#define FROMECAMERA   
+//#define FROMECAMERA   
 #define PSR_Threshold 10
 
 int main(int argc, char* argv[]){
@@ -34,7 +34,8 @@ int main(int argc, char* argv[]){
 	bool pause = false;
 
 	//string fileName = argv[1];
-	string fileName = "C:\\Users\\Aiwei\\Desktop\\Hover.mp4";
+	//string fileName = "C:\\Users\\Aiwei\\Desktop\\Hover.mp4";
+	string fileName = "C:\\Users\\Aiwei\\Desktop\\2.avi";
 	string windowName = "tracking out";
 	// Create KCFTracker object
 	//KCFTracker tracker(HOG, FIXEDWINDOW, MULTISCALE, LAB);
@@ -47,6 +48,10 @@ int main(int argc, char* argv[]){
 	cv::Rect result, displayRect;
 	cv::Rect firstBox;
 	bool getInitbox = false;///add variable
+	std::vector<int> p_vec;
+	std::vector<int> r_vec;
+	int p_mean = 0, p_sum = 0;
+	int r_mean = 0, r_sum = 0;
 
 #ifdef SAVE
 	cv::VideoWriter saveVideo;
@@ -81,7 +86,7 @@ int main(int argc, char* argv[]){
 
 
 
-	while (!getInitbox )///add function
+	while (!getInitbox)///add function
 	{
 		video >> frame;
 		//	cv::resize(frame, frame, cv::Size(640, 360));
@@ -120,8 +125,8 @@ int main(int argc, char* argv[]){
 				if (j == people.size())
 					peopleFiltered.push_back(r);
 			}
-			std::cout << "people.size()"<<people.size() << std::endl;
-			if (!peopleFiltered.empty()) std::cout << "peopleFiltered.size() "<<peopleFiltered.size() << std::endl;
+			std::cout << "people.size()" << people.size() << std::endl;
+			if (!peopleFiltered.empty()) std::cout << "peopleFiltered.size() " << peopleFiltered.size() << std::endl;
 			for (cv::Rect r : peopleFiltered)
 			{
 				r.x += cvRound(r.width*0.1);
@@ -136,7 +141,7 @@ int main(int argc, char* argv[]){
 				//cv::Point2f res = detect(_tmpl, getFeatures(image, 0, 1.0f), peak_value, PSR_temp);
 				cv::rectangle(frame, r, CV_RGB(255, 255, 0), 3);
 				imshow(windowName, frame);
-				tracker->detect(tracker->_tmpl, tracker->getFeatures2(frame, 0, 1.0f,r), peak_value, PSR);
+				tracker->detect(tracker->_tmpl, tracker->getFeatures2(frame, 0, 1.0f, r), peak_value, PSR);
 				cout << "psr = " << PSR << endl;
 				waitKey(1);
 				if (PSR > 20)
@@ -153,13 +158,13 @@ int main(int argc, char* argv[]){
 			}
 		}
 
-		while (1){
-			video >> frame;
+		while (video.read(frame)){
+			/*video >> frame;
 			if (frame.data == NULL)
 			{
 				end = true;
 				break;
-			}
+			}*/
 			fameNum++;
 			//  cv::resize(frame,frame,cv::Size(640,360));
 			//result = tracker.update(frame, peak_vaule); 
@@ -168,7 +173,7 @@ int main(int argc, char* argv[]){
 			if (PSR < PSR_Threshold)
 			{
 				B = 1;
-				getInitbox = false;				
+				getInitbox = false;
 				break;
 			}
 
@@ -176,11 +181,36 @@ int main(int argc, char* argv[]){
 			P = controller->getPitch();
 			R = controller->getRoll();
 			
+			/*if (p_vec.size() < 9)
+			{
+				p_vec.push_back(P);
+				p_sum += P;
+				p_mean = P;
+
+				r_vec.push_back(R);			
+				r_sum += R;				
+				r_mean = R;
+			}
+			else
+			{
+				p_vec.push_back(P);
+				p_sum = p_sum + P;
+				p_mean = p_sum / 10;
+				p_vec.;
+				p_sum = p_sum - p_vec[0];
+
+				r_vec.push_back(R);			
+				r_sum += R;			
+				r_mean = r_sum / 10;			
+				r_vec.pop_back();			
+				r_sum -= r_vec.begin;
+			}*/
 
 			//  if(fameNum%10 == 5)       
 			displayRect = result;
 			char text[30];
-			sprintf_s(text, "p = %d,R = %d", P, R);
+			sprintf_s(text, "p_mean = %d,r_mean = %d", P/10*10, R/10*10);
+			//sprintf_s(text, "P = %d,R = %d", P, R);
 			frame.copyTo(displayImage);
 			cv::rectangle(displayImage, displayRect, CV_RGB(0, 255, 0), 3);
 			cv::putText(displayImage, text, cv::Point(30, 30), cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 0, 255));
@@ -189,7 +219,7 @@ int main(int argc, char* argv[]){
 			if (cv::waitKey(1) == 27)
 				return 0;
 #ifdef SAVE
-	saveVideo << displayImage;
+			saveVideo << displayImage;
 #endif
 
 			if (pause)
@@ -215,7 +245,7 @@ int main(int argc, char* argv[]){
 		}
 	}
 
-	
 
-    return 0;
+
+	return 0;
 }
