@@ -218,6 +218,66 @@ cv::Rect KCFTracker::update(cv::Mat image, float &peak_value, float &PRS)
 	return _roi;
 }
 
+cv::Rect KCFTracker::detectWithBox(cv::Mat image, float &peak_value, float &PRS, cv::Rect box)
+{
+	cv::Rect result = box;
+	float scale_temp = _scale;
+
+	if (box.x + box.width <= 0) box.x = -box.width + 1;
+	if (box.y + box.height <= 0) box.y = -box.height + 1;
+	if (box.x >= image.cols - 1) box.x = image.cols - 2;
+	if (box.y >= image.rows - 1) box.y = image.rows - 2;
+
+	float cx = box.x + box.width / 2.0f;
+	float cy = box.y + box.height / 2.0f;
+
+	float PSR_temp = 0;
+
+	cv::Point2f res = detect(_tmpl, getFeatures2(image, 0, 1.0f, box), peak_value, PSR_temp);
+	//res = detect(_tmpl, getFeatures(image, 0, 1.0f, cv::Point(cx, cy)), peak_value, PSR_temp);
+	PRS = PSR_temp;
+	if (scale_step != 1) {
+		// Test at a smaller _scale
+		float new_peak_value;
+		cv::Point2f new_res = detect(_tmpl, getFeatures2(image, 0, 1.0f, box), new_peak_value, PSR_temp);
+		if (scale_weight * new_peak_value > peak_value) {
+			res = new_res;
+			peak_value = new_peak_value;
+			scale_temp /= scale_step;//要改变吗
+			result.width /= scale_step;
+			result.height /= scale_step;
+			PRS = PSR_temp;
+		}
+
+		// Test at a bigger _scale
+		new_res = detect(_tmpl, getFeatures2(image, 0, 1.0f, box), new_peak_value, PSR_temp);
+		if (scale_weight * new_peak_value > peak_value) {
+			res = new_res;
+			peak_value = new_peak_value;
+			scale_temp *= scale_step;
+			result.width *= scale_step;
+			result.height *= scale_step;
+			PRS = PSR_temp;
+		}
+	}
+
+	// Adjust by cell size and _scale  特征坐标变换到位置坐标((float)res.x * cell_size * _scale) 新坐标相对于原来坐标的偏移
+	result.x = cx - result.width / 2.0f + ((float)res.x * cell_size * _scale);
+	result.y = cy - result.height / 2.0f + ((float)res.y * cell_size * _scale);
+	//std::cout << ((float)res.x * cell_size * _scale) << " " << cell_size << " " << _scale << std::endl;
+	if (result.x >= image.cols - 1) result.x = image.cols - 1;
+	if (result.y >= image.rows - 1) result.y = image.rows - 1;
+	if (result.x + result.width <= 0) result.x = -result.width + 2;
+	if (result.y + result.height <= 0) result.y = -result.height + 2;
+
+	int _roiCenX = result.x + result.width / 2;
+	int _roiCenY = result.y + result.height / 2;
+
+	assert(result.width >= 0 && result.height >= 0);
+
+	return result;
+}
+
 // Detect object in the current frame.
 cv::Point2f KCFTracker::detect(cv::Mat z, cv::Mat x, float &peak_value)
 {

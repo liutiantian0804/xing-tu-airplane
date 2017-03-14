@@ -100,6 +100,7 @@ public:
     // Update position based on the new frame
      cv::Rect update(cv::Mat image, float &peak_value);
 	 cv::Rect update(cv::Mat image, float &peak_value, float &PRS);
+	 cv::Rect detectWithBox(cv::Mat image, float &peak_value, float &PRS, cv::Rect box);
 
     float interp_factor; // linear interpolation factor for adaptation
     float sigma; // gaussian kernel bandwidth

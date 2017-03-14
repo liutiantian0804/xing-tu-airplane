@@ -30,7 +30,6 @@ void getFirstBoxFromMouse(const cv::Mat &firstFrame, cv::Rect &firstBox, std::st
 	return;
 }
 
-
 bool getFirstBoxFromDetection(const cv::Mat &firstFrame, cv::Rect &firstBox, std::string windName){
 
 	cv::Mat frameCopy;

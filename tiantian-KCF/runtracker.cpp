@@ -62,7 +62,7 @@ int main(int argc, char* argv[]){
 		cv::Size(frame.cols, frame.rows));
 #endif
 
-	float peak_value, PSR;
+	float peak_value, PSR = 20;
 	cv::HOGDescriptor peopleDetect;
 	peopleDetect.setSVMDetector(cv::HOGDescriptor::getDefaultPeopleDetector());
 	std::vector<cv::Rect> people, peopleFiltered;
@@ -86,7 +86,6 @@ int main(int argc, char* argv[]){
 #endif // !FROMECAMERA
 
 
-
 	while (!getInitbox)///add function
 	{
 		video >> frame;
@@ -97,11 +96,13 @@ int main(int argc, char* argv[]){
 	flyControl *controller = new flyControl;
 	tracker->init(firstBox, frame);
 	controller->init(firstBox, frame.cols, frame.rows);
-	displayRect = firstBox;
+	//displayRect = firstBox;
 
 	cv::Rect newResult;
 	float newPSR;
-		while (video.read(frame)){
+	bool redetect = 1;
+
+		while (video.read(frame)){   //detect every 10 frames
 			/*video >> frame;
 			if (frame.data == NULL)
 			{
@@ -111,95 +112,119 @@ int main(int argc, char* argv[]){
 			fameNum++;
 			//  cv::resize(frame,frame,cv::Size(640,360));
 			//result = tracker.update(frame, peak_vaule); 
-			newResult = tracker->update(frame, peak_value, PSR);
-			cout << "PSR = " << PSR << endl;
-			if (PSR < 10)
+			//newResult = tracker->update(frame, peak_value, PSR);
+		
+			if (PSR >= 10)
+			{		
+				newResult = tracker->detectWithBox(frame, peak_value, PSR, tracker->_roi);
+				cout << "PSR = " << PSR << endl;
+				newResult = tracker->update(frame, peak_value, PSR);
+				frame.copyTo(displayImage);
+				cv::rectangle(displayImage, newResult, CV_RGB(0, 255, 0), 3);
+				
+				controller->update(newResult);
+				P = controller->getPitch();
+				R = controller->getRoll();
+				char text[30];
+				sprintf_s(text, "p_mean = %d,r_mean = %d", P / 10 * 10 + 1500, R / 10 * 10 + 1500);
+				//sprintf_s(text, "P = %d,R = %d", P, R);	
+				cv::putText(displayImage, text, cv::Point(30, 30), cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 0, 255));
+
+				cv::imshow(windowName, displayImage);
+				waitKey(1);
+			}
+			else
 			{
 				//waitKey(0);
+				bool getRedectBox = false;
 				P = 1500;
 				R = 1500;//悬停 旋转
 				S = 1500;
-				bool out = false;
-				while (video.read(frame) && !out)
+				if ( fameNum % 15 == 0)
 				{
 					frame.copyTo(displayImage);
-					cv::imshow(windowName, displayImage);
-					waitKey(1);
-					for (int i = displayImage.rows / 4; i < displayImage.rows / 4 * 3; i += result.height)
+					for (int i =  displayImage.rows / 3; i < displayImage.rows / 3 * 2; i += tracker->_roi.height)
 					{
-						for (int j = displayImage.cols / 4; j < displayImage.cols / 4 * 3; j += result.width)
+						for (int j = displayImage.cols / 4; j < displayImage.cols / 4 * 3; j += tracker->_roi.width)
 						{
-							cv::Rect box = cv::Rect(j, i, result.width, result.height);
-						//	cv::rectangle(displayImage, box, CV_RGB(0, 255, 0));
-						//	cv::imshow("haha", displayImage);
-						//	waitKey(1);
+							cv::Rect box = cv::Rect(j, i, tracker->_roi.width, tracker->_roi.height);
+							//cv::rectangle(displayImage, box, CV_RGB(0, 255, 0));
+							//cv::imshow("haha", displayImage);
+							//waitKey(1);
 							tracker->detect(tracker->_tmpl, tracker->getFeatures2(displayImage, 0, 1.0f, box), peak_value, newPSR);
-						//	cout << "newPSR = " << newPSR << endl;
+							cout << "newPSR = " << newPSR << endl;
 							if (newPSR > 30)
 							{
-								PSR = newPSR;
+								PSR = newPSR;//
 								//waitKey(0);
-								result = box;
+								newResult = box;
 								tracker->_roi = box;
 								cv::Mat x = tracker->getFeatures(frame, 0);
 								tracker->train(x, tracker->interp_factor);
+								cv::rectangle(displayImage, newResult, CV_RGB(0, 255, 0), 3);						
 
-							/*	delete tracker;
-								KCFTracker *tracker = new KCFTracker(HOG, FIXEDWINDOW, MULTISCALE, LAB);
-								tracker->init(box, frame);*/
-								//displayRect = box;
 								i = displayImage.rows;
 								j = displayImage.cols;
-								out = true;
+								getRedectBox = true;
+
+								controller->update(newResult);
+								P = controller->getPitch();
+								R = controller->getRoll();
+								char text[30];
+								sprintf_s(text, "p_mean = %d,r_mean = %d", P / 10 * 10 + 1500, R / 10 * 10 + 1500);
+								//sprintf_s(text, "P = %d,R = %d", P, R);	
+								cv::putText(displayImage, text, cv::Point(30, 30), cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 0, 255));
+
+								cv::imshow(windowName, displayImage);
+								waitKey(1);
 							}
 						}
-					}
-				}			
+					}	
+				}
+
+				if (getRedectBox == false)
+				{
+					cv::imshow(windowName, frame);
+					waitKey(1);
+				}
+
 			}
-			else
-			{
-				result = newResult;
-				//PSR = newPSR ;
-			}
-			controller->update(result);
-			P = controller->getPitch();
-			R = controller->getRoll();
-			
-			/*if (p_vec.size() < 9)
-			{
-				p_vec.push_back(P);
-				p_sum += P;
-				p_mean = P;
 
-				r_vec.push_back(R);			
-				r_sum += R;				
-				r_mean = R;
-			}
-			else
-			{
-				p_vec.push_back(P);
-				p_sum = p_sum + P;
-				p_mean = p_sum / 10;
-				p_vec.;
-				p_sum = p_sum - p_vec[0];
+			//controller->update(result);
+			//P = controller->getPitch();
+			//R = controller->getRoll();
+			//
+			///*if (p_vec.size() < 9)
+			//{
+			//	p_vec.push_back(P);
+			//	p_sum += P;
+			//	p_mean = P;
 
-				r_vec.push_back(R);			
-				r_sum += R;			
-				r_mean = r_sum / 10;			
-				r_vec.pop_back();			
-				r_sum -= r_vec.begin;
-			}*/
+			//	r_vec.push_back(R);			
+			//	r_sum += R;				
+			//	r_mean = R;
+			//}
+			//else
+			//{
+			//	p_vec.push_back(P);
+			//	p_sum = p_sum + P;
+			//	p_mean = p_sum / 10;
+			//	p_vec.;
+			//	p_sum = p_sum - p_vec[0];
 
-			//  if(fameNum%10 == 5)       
-			displayRect = result;
-			char text[30];
-			sprintf_s(text, "p_mean = %d,r_mean = %d", P/10*10, R/10*10);
-			//sprintf_s(text, "P = %d,R = %d", P, R);
-			frame.copyTo(displayImage);
-			cv::rectangle(displayImage, displayRect, CV_RGB(0, 255, 0), 3);
-			cv::putText(displayImage, text, cv::Point(30, 30), cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 0, 255));
+			//	r_vec.push_back(R);			
+			//	r_sum += R;			
+			//	r_mean = r_sum / 10;			
+			//	r_vec.pop_back();			
+			//	r_sum -= r_vec.begin;
+			//}*/
 
-			cv::imshow(windowName, displayImage);
+
+			//char text[30];
+			//sprintf_s(text, "p_mean = %d,r_mean = %d", P/10*10+1500, R/10*10+1500);
+			////sprintf_s(text, "P = %d,R = %d", P, R);	
+			//cv::putText(displayImage, text, cv::Point(30, 30), cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 0, 255));
+
 			if (cv::waitKey(1) == 27)
 				return 0;
 #ifdef SAVE
