@@ -100,96 +100,97 @@ int main(int argc, char* argv[]){
 
 	cv::Rect newResult;
 	float newPSR;
-	bool redetect = 1;
+	bool getRedectBox = false;
 
-		while (video.read(frame)){   //detect every 10 frames
-			/*video >> frame;
-			if (frame.data == NULL)
+	while (video.read(frame)){   //detect every 10 frames
+		/*video >> frame;
+		if (frame.data == NULL)
+		{
+		end = true;
+		break;
+		}*/
+		fameNum++;
+		//  cv::resize(frame,frame,cv::Size(640,360));
+		//result = tracker.update(frame, peak_vaule); 
+		//newResult = tracker->update(frame, peak_value, PSR);
+		frame.copyTo(displayImage);
+
+		if (getRedectBox == true)
+		{
+			newResult = tracker->detectWithBox(frame, peak_value, PSR, tracker->_roi);
+			cout << "PSR = " << PSR << endl;
+		}
+
+		if (PSR >= 10)
+		{
+			newResult = tracker->update(frame, peak_value, PSR);
+
+			cv::rectangle(displayImage, newResult, CV_RGB(0, 255, 0), 3);
+
+			controller->update(newResult);
+			P = controller->getPitch();
+			R = controller->getRoll();
+			char text[30];
+			sprintf_s(text, "P = %d,R = %d", P / 10 * 10 + 1500, R / 10 * 10 + 1500);
+			cv::putText(displayImage, text, cv::Point(30, 30), cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 0, 255));
+
+			cv::imshow(windowName, displayImage);
+			waitKey(1);
+		}
+		else
+		{
+			getRedectBox = false;
+			if (fameNum % 15 == 0)
 			{
-				end = true;
-				break;
-			}*/
-			fameNum++;
-			//  cv::resize(frame,frame,cv::Size(640,360));
-			//result = tracker.update(frame, peak_vaule); 
-			//newResult = tracker->update(frame, peak_value, PSR);
-		
-			if (PSR >= 10)
-			{		
-				newResult = tracker->detectWithBox(frame, peak_value, PSR, tracker->_roi);
-				cout << "PSR = " << PSR << endl;
-				newResult = tracker->update(frame, peak_value, PSR);
-				frame.copyTo(displayImage);
-				cv::rectangle(displayImage, newResult, CV_RGB(0, 255, 0), 3);
-				
-				controller->update(newResult);
-				P = controller->getPitch();
-				R = controller->getRoll();
-				char text[30];
-				sprintf_s(text, "p_mean = %d,r_mean = %d", P / 10 * 10 + 1500, R / 10 * 10 + 1500);
-				//sprintf_s(text, "P = %d,R = %d", P, R);	
-				cv::putText(displayImage, text, cv::Point(30, 30), cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 0, 255));
+				for (int i = displayImage.rows / 3; i < displayImage.rows / 3 * 2; i += tracker->_roi.height)
+				{
+					for (int j = displayImage.cols / 4; j < displayImage.cols / 4 * 3; j += tracker->_roi.width)
+					{
+						cv::Rect box = cv::Rect(j, i, tracker->_roi.width, tracker->_roi.height);
+						//cv::rectangle(displayImage, box, CV_RGB(0, 255, 0));
+						//cv::imshow("haha", displayImage);
+						//waitKey(1);
+						tracker->detect(tracker->_tmpl, tracker->getFeatures2(displayImage, 0, 1.0f, box), peak_value, newPSR);
+						if (newPSR > 30)
+						{
+							PSR = newPSR;//
+							newResult = box;
+							tracker->_roi = box;
+							cv::Mat x = tracker->getFeatures(frame, 0);
+							tracker->train(x, tracker->interp_factor);
+							cv::rectangle(displayImage, newResult, CV_RGB(0, 255, 0), 3);
 
+							i = displayImage.rows;
+							j = displayImage.cols;
+							getRedectBox = true;
+
+							controller->update(newResult);
+							P = controller->getPitch();
+							R = controller->getRoll();
+							char text[30];
+							sprintf_s(text, "P = %d,R = %d", P / 10 * 10 + 1500, R / 10 * 10 + 1500);
+							//sprintf_s(text, "P = %d,R = %d", P, R);	
+							cv::putText(displayImage, text, cv::Point(30, 30), cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 0, 255));
+
+							cv::imshow(windowName, displayImage);
+							waitKey(1);
+						}
+					}
+				}
+			}
+
+			if (getRedectBox == false)
+			{
+				P = 1500;
+				R = 1500;
+				char text[30];
+				sprintf_s(text, "P = %d,R = %d", P, R);
+				cv::putText(displayImage, text, cv::Point(30, 30), cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 0, 255));
 				cv::imshow(windowName, displayImage);
 				waitKey(1);
 			}
-			else
-			{
-				//waitKey(0);
-				bool getRedectBox = false;
-				P = 1500;
-				R = 1500;//悬停 旋转
-				S = 1500;
-				if ( fameNum % 15 == 0)
-				{
-					frame.copyTo(displayImage);
-					for (int i =  displayImage.rows / 3; i < displayImage.rows / 3 * 2; i += tracker->_roi.height)
-					{
-						for (int j = displayImage.cols / 4; j < displayImage.cols / 4 * 3; j += tracker->_roi.width)
-						{
-							cv::Rect box = cv::Rect(j, i, tracker->_roi.width, tracker->_roi.height);
-							//cv::rectangle(displayImage, box, CV_RGB(0, 255, 0));
-							//cv::imshow("haha", displayImage);
-							//waitKey(1);
-							tracker->detect(tracker->_tmpl, tracker->getFeatures2(displayImage, 0, 1.0f, box), peak_value, newPSR);
-							cout << "newPSR = " << newPSR << endl;
-							if (newPSR > 30)
-							{
-								PSR = newPSR;//
-								//waitKey(0);
-								newResult = box;
-								tracker->_roi = box;
-								cv::Mat x = tracker->getFeatures(frame, 0);
-								tracker->train(x, tracker->interp_factor);
-								cv::rectangle(displayImage, newResult, CV_RGB(0, 255, 0), 3);						
 
-								i = displayImage.rows;
-								j = displayImage.cols;
-								getRedectBox = true;
-
-								controller->update(newResult);
-								P = controller->getPitch();
-								R = controller->getRoll();
-								char text[30];
-								sprintf_s(text, "p_mean = %d,r_mean = %d", P / 10 * 10 + 1500, R / 10 * 10 + 1500);
-								//sprintf_s(text, "P = %d,R = %d", P, R);	
-								cv::putText(displayImage, text, cv::Point(30, 30), cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 0, 255));
-
-								cv::imshow(windowName, displayImage);
-								waitKey(1);
-							}
-						}
-					}	
-				}
-
-				if (getRedectBox == false)
-				{
-					cv::imshow(windowName, frame);
-					waitKey(1);
-				}
-
-			}
-
+		}
 			//controller->update(result);
 			//P = controller->getPitch();
 			//R = controller->getRoll();
