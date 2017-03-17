@@ -342,7 +342,6 @@ cv::Point2f KCFTracker::detect(cv::Mat z, cv::Mat x, float &peak_value, float &P
 	return p;
 }
 
-
 float KCFTracker::calPSR(cv::Mat res, float peak_value, cv::Point2f p)
 {
 	std::vector<float> vec;

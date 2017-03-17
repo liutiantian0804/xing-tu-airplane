@@ -2,7 +2,7 @@
 #include <string>
 #include <algorithm>
 
-#include <opencv2/core/core.hpp>
+//#include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
 #include "kcftracker.hpp"
@@ -90,7 +90,8 @@ int main(int argc, char* argv[]){
 	{
 		video >> frame;
 		//	cv::resize(frame, frame, cv::Size(640, 360));
-		getInitbox = getFirstBoxFromDetection(frame, firstBox, windowName);
+		//getInitbox = getFirstBoxFromDetection(frame, firstBox, windowName); 
+			getInitbox = getFirstBoxFromDetectionSmallSize(frame, firstBox, windowName);
 	}
 	KCFTracker *tracker = new KCFTracker(HOG, FIXEDWINDOW, MULTISCALE, LAB);
 	flyControl *controller = new flyControl;
@@ -191,40 +192,6 @@ int main(int argc, char* argv[]){
 			}
 
 		}
-			//controller->update(result);
-			//P = controller->getPitch();
-			//R = controller->getRoll();
-			//
-			///*if (p_vec.size() < 9)
-			//{
-			//	p_vec.push_back(P);
-			//	p_sum += P;
-			//	p_mean = P;
-
-			//	r_vec.push_back(R);			
-			//	r_sum += R;				
-			//	r_mean = R;
-			//}
-			//else
-			//{
-			//	p_vec.push_back(P);
-			//	p_sum = p_sum + P;
-			//	p_mean = p_sum / 10;
-			//	p_vec.;
-			//	p_sum = p_sum - p_vec[0];
-
-			//	r_vec.push_back(R);			
-			//	r_sum += R;			
-			//	r_mean = r_sum / 10;			
-			//	r_vec.pop_back();			
-			//	r_sum -= r_vec.begin;
-			//}*/
-
-
-			//char text[30];
-			//sprintf_s(text, "p_mean = %d,r_mean = %d", P/10*10+1500, R/10*10+1500);
-			////sprintf_s(text, "P = %d,R = %d", P, R);	
-			//cv::putText(displayImage, text, cv::Point(30, 30), cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 0, 255));
 
 			if (cv::waitKey(1) == 27)
 				return 0;
