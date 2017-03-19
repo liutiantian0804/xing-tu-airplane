@@ -8,8 +8,6 @@
 #include "cascadedetect.hpp"
 #include "time.h"
 
-
-
 using namespace std;
 using namespace cv;
 
