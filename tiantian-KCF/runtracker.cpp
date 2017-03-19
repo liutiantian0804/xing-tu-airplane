@@ -1,4 +1,3 @@
-
 #include <iostream>
 #include <string>
 #include <algorithm>
@@ -19,29 +18,15 @@ using namespace std;
 using namespace cv;
 
 //#define FROMECAMERA   
-#define PSR_Threshold 10
 
 int main(int argc, char* argv[]){
 
-	int B = 0;
-	int P = 1500;
-	int R = 1500;
-	int S = 1500;//旋转
 
-	bool HOG = true;
-	bool FIXEDWINDOW = false;
-	bool MULTISCALE = true;
-	bool SILENT = true;  //display tracking result
-	bool LAB = true;
-	bool pause = false;
+	int GP = 1500;
+	int GR = 1500;
 
-	//string fileName = argv[1];
-	//string fileName = "C:\\Users\\Aiwei\\Desktop\\Hover.mp4";
 	string fileName = "C:\\Users\\Aiwei\\Desktop\\2.avi";
 	string windowName = "tracking out";
-	// Create KCFTracker object
-	//KCFTracker tracker(HOG, FIXEDWINDOW, MULTISCALE, LAB);
-	//flyControl controller;
 
 	// Frame readed
 	cv::Mat frame;
@@ -50,6 +35,7 @@ int main(int argc, char* argv[]){
 	cv::Rect result, displayRect;
 	cv::Rect firstBox;
 	bool getInitbox = false;///add variable
+	bool pause = false;
 
 #ifdef SAVE
 	cv::VideoWriter saveVideo;
@@ -86,14 +72,30 @@ int main(int argc, char* argv[]){
 	while (!getInitbox)///add function
 	{
 		video >> frame;
-		//	cv::resize(frame, frame, cv::Size(640, 360));
 		getInitbox = getFirstBoxFromDetection(frame, firstBox, windowName); 
 		//getInitbox = getFirstBoxFromDetectionSmallSize(frame, firstBox, windowName);
 	}
+
 	KCFTracker *tracker = new KCFTracker;
 	flyControl *controller = new flyControl;
-	tracker->init(firstBox, frame);
-	controller->init(firstBox, frame.cols, frame.rows);
+
+	bool GgetInitObject = false;
+	int GcenterObjectArea = firstBox.area();
+
+	tracker->init(firstBox, frame/*, G_tmpl, Ghann, G_alphaf, G_prob, Gsize_patch, G_roi, G_tmpl_sz, G_scale*/);
+
+	//C++需要保存的变量
+	cv::Mat G_tmpl = tracker->_tmpl;
+	cv::Mat Ghann = tracker->hann;
+	cv::Mat G_alphaf = tracker->_alphaf;
+	cv::Mat G_prob = tracker->_prob;
+	int Gsize_patch[3];
+	Gsize_patch[0] = tracker->size_patch[0];
+	Gsize_patch[1] = tracker->size_patch[1];
+	Gsize_patch[2] = tracker->size_patch[2];
+	cv::Rect_<float> G_roi = tracker->_roi;
+	cv::Size G_tmpl_sz = tracker->_tmpl_sz;
+	float G_scale = tracker->_scale;
 
 	cv::Rect newResult;
 	float newPSR;
@@ -111,15 +113,37 @@ int main(int argc, char* argv[]){
 		//result = tracker.update(frame, peak_vaule); 
 		//newResult = tracker->update(frame, peak_value, PSR);
 		frame.copyTo(displayImage);
-		newResult = tracker->update(frame, peak_value, PSR);
+
+		delete tracker;
+		KCFTracker *tracker = new KCFTracker;
+		//cv::Rect KCFTracker::update(cv::Mat image, float &peak_value,
+		//cv::Mat G_tmpl, cv::Mat Ghann, cv::Mat G_alphaf, cv::Mat G_prob, int Gsize_patch[3], cv::Rect_<float> G_roi, cv::Size G_tmpl_sz, float G_scale)
+
+		newResult = tracker->update(frame, G_tmpl, Ghann, G_alphaf, G_prob, Gsize_patch, G_roi, G_tmpl_sz, G_scale);
 
 		cv::rectangle(displayImage, newResult, CV_RGB(0, 255, 0), 3);
 
-		controller->update(newResult);
-		P = controller->getPitch();
-		R = controller->getRoll();
+
+		G_tmpl = tracker->_tmpl;
+		Ghann = tracker->hann;
+		G_alphaf = tracker->_alphaf;
+		G_prob = tracker->_prob;
+		Gsize_patch[0] = tracker->size_patch[0];
+		Gsize_patch[1] = tracker->size_patch[1];
+		Gsize_patch[2] = tracker->size_patch[2];
+		G_roi = tracker->_roi;
+		G_tmpl_sz = tracker->_tmpl_sz;
+		G_scale = tracker->_scale;
+
+
+		controller->update(newResult, displayImage.cols, displayImage.rows, GgetInitObject, GcenterObjectArea);
+		GP = controller->P;
+		GR = controller->R;
+		GgetInitObject = controller->getInitObject;
+		GcenterObjectArea = controller->centerObjectArea;
+
 		char text[30];
-		sprintf_s(text, "P = %d,R = %d", P / 10 * 10 + 1500, R / 10 * 10 + 1500);
+		sprintf_s(text, "P = %d,R = %d", GP / 10 * 10 + 1500, GR / 10 * 10 + 1500);
 		cv::putText(displayImage, text, cv::Point(30, 30), cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 0, 255));
 
 		cv::imshow(windowName, displayImage);

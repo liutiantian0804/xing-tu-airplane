@@ -79,7 +79,8 @@
 //}
 
 // Initialize tracker 
-void KCFTracker::init(const cv::Rect &roi, cv::Mat image)
+void KCFTracker::init(const cv::Rect &roi, cv::Mat image/*,*/
+	/*cv::Mat &G_tmpl, cv::Mat &Ghann, cv::Mat &G_alphaf, cv::Mat &G_prob, int Gsize_patch[3], cv::Rect_<float> &G_roi, cv::Size &G_tmpl_sz, float &G_scale*/)
 {
 	_labCentroids = cv::Mat(nClusters, 3, CV_32FC1, &data);
 	_roi = roi;
@@ -91,12 +92,45 @@ void KCFTracker::init(const cv::Rect &roi, cv::Mat image)
 	//_num = cv::Mat(size_patch[0], size_patch[1], CV_32FC2, float(0));
 	//_den = cv::Mat(size_patch[0], size_patch[1], CV_32FC2, float(0));
 	train(_tmpl, 1.0); // train with initial frame
+
+	//G_tmpl = _tmpl;
+	//Ghann = hann;
+	//G_alphaf = _alphaf;
+	//G_prob = _prob;
+	//Gsize_patch[0] = size_patch[0];
+	//Gsize_patch[1] = size_patch[1];
+	//Gsize_patch[2] = size_patch[2];
+	//G_roi = _roi;
+	//G_tmpl_sz = _tmpl_sz;
+	//G_scale = _scale;
 }
 // Update position based on the new frame
 // Update position based on the new frame
-cv::Rect KCFTracker::update(cv::Mat image, float &peak_value)
+
+//cv::Mat _tmpl;
+//cv::Mat hann;
+//cv::Mat _alphaf;
+//cv::Mat _prob;
+//int size_patch[3];
+//cv::Rect_<float> _roi;
+//cv::Size _tmpl_sz;
+//float _scale;
+
+cv::Rect KCFTracker::update(cv::Mat image,
+	cv::Mat G_tmpl, cv::Mat Ghann, cv::Mat G_alphaf, cv::Mat G_prob, int Gsize_patch[3], cv::Rect_<float> G_roi, cv::Size G_tmpl_sz,float G_scale)
 {
+	_tmpl = G_tmpl;
+	hann = Ghann;
+	_alphaf = G_alphaf;
+	_prob = G_prob;
+	size_patch[0] = Gsize_patch[0];
+	size_patch[1] = Gsize_patch[1];
+	size_patch[2] = Gsize_patch[2];
+	_roi = G_roi;
+	_tmpl_sz = G_tmpl_sz;
+	_scale = G_scale;
 	_labCentroids = cv::Mat(nClusters, 3, CV_32FC1, &data);
+
 	if (_roi.x + _roi.width <= 0) _roi.x = -_roi.width + 1;
 	if (_roi.y + _roi.height <= 0) _roi.y = -_roi.height + 1;
 	if (_roi.x >= image.cols - 1) _roi.x = image.cols - 2;
@@ -145,7 +179,7 @@ cv::Rect KCFTracker::update(cv::Mat image, float &peak_value)
 		}
 	}
 
-	printf("peak_value: %f\n", peak_value);
+	//printf("peak_value: %f\n", peak_value);
 
 	// Adjust by cell size and _scale
 	_roi.x = cx - _roi.width / 2.0f + ((float)res.x * cell_size * _scale);

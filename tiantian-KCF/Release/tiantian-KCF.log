@@ -1,65 +1,15 @@
-﻿生成启动时间为 2017/3/19 15:10:53。
+﻿生成启动时间为 2017/3/19 17:25:43。
      1>项目“C:\Users\Aiwei\documents\visual studio 2013\Projects\tiantian-KCF\tiantian-KCF\tiantian-KCF.vcxproj”在节点 2 上(Build 个目标)。
      1>ClCompile:
-         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /Zi /nologo /W3 /WX- /sdl /O2 /Oi /Oy- /GL /D _MBCS /Gm- /EHsc /MD /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Release\\" /Fd"Release\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt kcftracker.cpp runtracker.cpp
-         kcftracker.cpp
-     1>c:\users\aiwei\documents\visual studio 2013\projects\tiantian-kcf\tiantian-kcf\kcftracker.hpp(24): warning C4305: “初始化”: 从“double”到“float”截断
-     1>c:\users\aiwei\documents\visual studio 2013\projects\tiantian-kcf\tiantian-kcf\kcftracker.hpp(25): warning C4305: “初始化”: 从“double”到“float”截断
-     1>c:\users\aiwei\documents\visual studio 2013\projects\tiantian-kcf\tiantian-kcf\kcftracker.hpp(26): warning C4305: “初始化”: 从“double”到“float”截断
-     1>c:\users\aiwei\documents\visual studio 2013\projects\tiantian-kcf\tiantian-kcf\kcftracker.hpp(32): warning C4305: “初始化”: 从“double”到“float”截断
-     1>c:\users\aiwei\documents\visual studio 2013\projects\tiantian-kcf\tiantian-kcf\kcftracker.hpp(33): warning C4305: “初始化”: 从“double”到“float”截断
-     1>c:\users\aiwei\documents\visual studio 2013\projects\tiantian-kcf\tiantian-kcf\labdata.hpp(17): warning C4305: “初始化”: 从“double”到“float”截断
-     1>kcftracker.cpp(102): warning C4244: “=”: 从“int”转换到“float”，可能丢失数据
-     1>kcftracker.cpp(103): warning C4244: “=”: 从“int”转换到“float”，可能丢失数据
-     1>kcftracker.cpp(154): warning C4244: “=”: 从“int”转换到“float”，可能丢失数据
-     1>kcftracker.cpp(155): warning C4244: “=”: 从“int”转换到“float”，可能丢失数据
-     1>kcftracker.cpp(170): warning C4244: “=”: 从“int”转换到“float”，可能丢失数据
-     1>kcftracker.cpp(171): warning C4244: “=”: 从“int”转换到“float”，可能丢失数据
-     1>kcftracker.cpp(210): warning C4244: “=”: 从“int”转换到“float”，可能丢失数据
-     1>kcftracker.cpp(211): warning C4244: “=”: 从“int”转换到“float”，可能丢失数据
-     1>kcftracker.cpp(215): warning C4244: “初始化”: 从“float”转换到“int”，可能丢失数据
-     1>kcftracker.cpp(216): warning C4244: “初始化”: 从“float”转换到“int”，可能丢失数据
-     1>kcftracker.cpp(251): warning C4244: “/=”: 从“float”转换到“int”，可能丢失数据
-     1>kcftracker.cpp(252): warning C4244: “/=”: 从“float”转换到“int”，可能丢失数据
-     1>kcftracker.cpp(262): warning C4244: “*=”: 从“float”转换到“int”，可能丢失数据
-     1>kcftracker.cpp(263): warning C4244: “*=”: 从“float”转换到“int”，可能丢失数据
-     1>kcftracker.cpp(269): warning C4244: “=”: 从“float”转换到“int”，可能丢失数据
-     1>kcftracker.cpp(270): warning C4244: “=”: 从“float”转换到“int”，可能丢失数据
-     1>kcftracker.cpp(379): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
-     1>kcftracker.cpp(380): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
-     1>kcftracker.cpp(456): warning C4305: “=”: 从“double”到“float”截断
-     1>kcftracker.cpp(457): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
-     1>kcftracker.cpp(458): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
-     1>kcftracker.cpp(480): warning C4244: “初始化”: 从“float”转换到“int”，可能丢失数据
-     1>kcftracker.cpp(481): warning C4244: “初始化”: 从“float”转换到“int”，可能丢失数据
-     1>kcftracker.cpp(489): warning C4244: “=”: 从“float”转换到“int”，可能丢失数据
-     1>kcftracker.cpp(490): warning C4244: “=”: 从“float”转换到“int”，可能丢失数据
-     1>kcftracker.cpp(520): warning C4244: “=”: 从“float”转换到“int”，可能丢失数据
-     1>kcftracker.cpp(521): warning C4244: “=”: 从“float”转换到“int”，可能丢失数据
-     1>kcftracker.cpp(524): warning C4244: “=”: 从“float”转换到“int”，可能丢失数据
-     1>kcftracker.cpp(525): warning C4244: “=”: 从“float”转换到“int”，可能丢失数据
-     1>kcftracker.cpp(584): warning C4244: “+=”: 从“double”转换到“float”，可能丢失数据
-     1>kcftracker.cpp(620): warning C4244: “初始化”: 从“int”转换到“float”，可能丢失数据
-     1>kcftracker.cpp(621): warning C4244: “初始化”: 从“int”转换到“float”，可能丢失数据
-     1>kcftracker.cpp(624): warning C4244: “初始化”: 从“float”转换到“int”，可能丢失数据
-     1>kcftracker.cpp(625): warning C4244: “初始化”: 从“float”转换到“int”，可能丢失数据
-     1>kcftracker.cpp(633): warning C4244: “=”: 从“float”转换到“int”，可能丢失数据
-     1>kcftracker.cpp(634): warning C4244: “=”: 从“float”转换到“int”，可能丢失数据
-     1>kcftracker.cpp(664): warning C4244: “=”: 从“float”转换到“int”，可能丢失数据
-     1>kcftracker.cpp(665): warning C4244: “=”: 从“float”转换到“int”，可能丢失数据
-     1>kcftracker.cpp(668): warning C4244: “=”: 从“float”转换到“int”，可能丢失数据
-     1>kcftracker.cpp(669): warning C4244: “=”: 从“float”转换到“int”，可能丢失数据
-     1>kcftracker.cpp(728): warning C4244: “+=”: 从“double”转换到“float”，可能丢失数据
-     1>kcftracker.cpp(762): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
-     1>kcftracker.cpp(764): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
-     1>kcftracker.cpp(792): warning C4244: “return”: 从“double”转换到“float”，可能丢失数据
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /Zi /nologo /W3 /WX- /sdl /O2 /Oi /Oy- /GL /D _MBCS /Gm- /EHsc /MD /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Release\\" /Fd"Release\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt runtracker.cpp
          runtracker.cpp
-     1>c:\users\aiwei\documents\visual studio 2013\projects\tiantian-kcf\tiantian-kcf\kcftracker.hpp(24): warning C4305: “初始化”: 从“double”到“float”截断
-     1>c:\users\aiwei\documents\visual studio 2013\projects\tiantian-kcf\tiantian-kcf\kcftracker.hpp(25): warning C4305: “初始化”: 从“double”到“float”截断
      1>c:\users\aiwei\documents\visual studio 2013\projects\tiantian-kcf\tiantian-kcf\kcftracker.hpp(26): warning C4305: “初始化”: 从“double”到“float”截断
-     1>c:\users\aiwei\documents\visual studio 2013\projects\tiantian-kcf\tiantian-kcf\kcftracker.hpp(32): warning C4305: “初始化”: 从“double”到“float”截断
-     1>c:\users\aiwei\documents\visual studio 2013\projects\tiantian-kcf\tiantian-kcf\kcftracker.hpp(33): warning C4305: “初始化”: 从“double”到“float”截断
-     1>runtracker.cpp(99): warning C4101: “newPSR”: 未引用的局部变量
+     1>c:\users\aiwei\documents\visual studio 2013\projects\tiantian-kcf\tiantian-kcf\kcftracker.hpp(27): warning C4305: “初始化”: 从“double”到“float”截断
+     1>c:\users\aiwei\documents\visual studio 2013\projects\tiantian-kcf\tiantian-kcf\kcftracker.hpp(28): warning C4305: “初始化”: 从“double”到“float”截断
+     1>c:\users\aiwei\documents\visual studio 2013\projects\tiantian-kcf\tiantian-kcf\kcftracker.hpp(34): warning C4305: “初始化”: 从“double”到“float”截断
+     1>c:\users\aiwei\documents\visual studio 2013\projects\tiantian-kcf\tiantian-kcf\kcftracker.hpp(35): warning C4305: “初始化”: 从“double”到“float”截断
+     1>runtracker.cpp(48): warning C4101: “peak_value”: 未引用的局部变量
+     1>runtracker.cpp(111): warning C4101: “newPSR”: 未引用的局部变量
        Link:
          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\Aiwei\documents\visual studio 2013\Projects\tiantian-KCF\Release\tiantian-KCF.exe" /NOLOGO opencv_contrib2413.lib opencv_calib3d2413.lib opencv_core2413.lib opencv_features2d2413.lib opencv_flann2413.lib opencv_gpu2413.lib opencv_highgui2413.lib opencv_imgproc2413.lib opencv_legacy2413.lib opencv_ml2413.lib opencv_nonfree2413.lib opencv_objdetect2413.lib opencv_ocl2413.lib opencv_photo2413.lib opencv_stitching2413.lib opencv_superres2413.lib opencv_ts2413.lib opencv_video2413.lib opencv_videostab2413.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\Users\Aiwei\documents\visual studio 2013\Projects\tiantian-KCF\Release\tiantian-KCF.pdb" /OPT:REF /OPT:ICF /LTCG /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\Aiwei\documents\visual studio 2013\Projects\tiantian-KCF\Release\tiantian-KCF.lib" /MACHINE:X86 /SAFESEH Release\fhog.obj
          Release\flyControl.obj
@@ -73,4 +23,4 @@
 
 生成成功。
 
-已用时间 00:00:05.28
+已用时间 00:00:04.30

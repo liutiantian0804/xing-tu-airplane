@@ -8,27 +8,19 @@ class flyControl
 public:
 	flyControl();
 	~flyControl();
-	void update(Rect box);
-	int getPitch();
+
+	void update(cv::Rect result, int frameWidth, int frameHeight, bool GgetInitObject, int GcenterObjectArea);
+	
 	void init(Rect box, int frameWidth,int frameHeight);
-	void pitchUpdateWithArea(Rect result);
+	void pitchUpdateWithArea(Rect result, int initObjectArea, int &P);
 	void pitchUpdateWithYShift(Rect result);
-	void rollUpdate(Rect result);
-	int getRoll();
 
-private:
-	cv::Point imageCenter;
-	float initObjectArea;
-	bool getInitObject;
-	float imageWidth;
-	float imageHeight;
-	int pitch;
-	int roll;
+	void pitchUpdateWithYShift(Rect result, int frameWidth, int frameHeight, int &P);
+	void rollUpdate(Rect result, int frameWidth, int frameHeight, int &R);
 
-	float areaThreshold[7] ;
-	int pitchThreshold[7] ;
-	float xShiftThreshold[7];
-	int rollThreshold[7];
-	float yShiftThreshold[7];
+	int P;
+	int R;
+	bool getInitObject; 
+	int centerObjectArea;
 };
 

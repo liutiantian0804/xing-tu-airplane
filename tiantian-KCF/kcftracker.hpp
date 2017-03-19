@@ -15,9 +15,11 @@ public:
 
 	// Initialize tracker 
 	void init(const cv::Rect &roi, cv::Mat image);
-
+	//void KCFTracker::init(const cv::Rect &roi, cv::Mat image/*,*/
+//		/*cv::Mat &G_tmpl, cv::Mat &Ghann, cv::Mat &G_alphaf, cv::Mat &G_prob, int Gsize_patch[3], cv::Rect_<float> &G_roi, cv::Size &G_tmpl_sz, float &G_scale*/);
 	// Update position based on the new frame
-	cv::Rect update(cv::Mat image, float &peak_value);
+	cv::Rect update(cv::Mat image,
+		cv::Mat G_tmpl, cv::Mat Ghann, cv::Mat G_alphaf, cv::Mat G_prob, int Gsize_patch[3], cv::Rect_<float> G_roi, cv::Size G_tmpl_sz, float G_scale);
 	cv::Rect update(cv::Mat image, float &peak_value, float &PRS);
 	cv::Rect detectWithBox(cv::Mat image, float &peak_value, float &PRS, cv::Rect box);
 
